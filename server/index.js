@@ -16,11 +16,11 @@ const wsServer = new WebSocket.Server({
 wsServer.on("connection", function(ws) {
   const date = new Date();
   const dateString = `${date.toDateString()} ${date.toLocaleTimeString()}`;
-  wsServer.clients.forEach(c => {
-    c.send(`${dateString}: New client connected. Client count: ${wsServer.clients.size}`);
+  wsServer.clients.forEach((client) => {
+    client.send(`${dateString}: New client connected. Client count: ${wsServer.clients.size}`);
   });
   ws.on("message", function(msg) {
-    wsServer.clients.forEach(function each(client) {
+    wsServer.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(msg.toString());
       }
@@ -29,7 +29,7 @@ wsServer.on("connection", function(ws) {
 });
 
 myServer.on('upgrade', async function upgrade(request, socket, head) {
-  wsServer.handleUpgrade(request, socket, head, function done(ws) {
+  wsServer.handleUpgrade(request, socket, head, (ws) => {
     wsServer.emit('connection', ws, request);
   });
 });

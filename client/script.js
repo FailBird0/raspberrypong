@@ -20,11 +20,11 @@ function msgGeneration(msg, from) {
   myMessages.appendChild(newMessage);
 }
 
-mywsServer.onopen = function() {
+mywsServer.onopen = () => {
   sendBtn.disabled = false;
 }
 
-mywsServer.onmessage = function(event) {
+mywsServer.onmessage = (event) => {
   const { data } = event;
   msgGeneration(data, "Server");
 }
