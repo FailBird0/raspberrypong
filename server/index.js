@@ -5,7 +5,9 @@ const path = require("path");
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
 
-const myServer = app.listen(9876);
+const myServer = app.listen(9876, () => {
+  console.log(`Server listening on port 9876`);
+});
 
 const wsServer = new WebSocket.Server({
   noServer: true
