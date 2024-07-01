@@ -1,30 +1,31 @@
 const url = `ws://${window.location.host}/myWebsocket`;
 const mywsServer = new WebSocket(url);
 
-const myMessages = document.getElementById("messages");
-const myInput = document.getElementById("message");
-const sendBtn = document.getElementById("send");
+const $count = document.getElementById("count");
+const $reset = document.getElementById("resetCount");
+const $UID = document.getElementById("UID");
 
-sendBtn.disabled = true;
-sendBtn.addEventListener("click", sendMsg, false);
-
-function sendMsg() {
-  const text = myInput.value;
-  msgGeneration(text, "Client");
-  mywsServer.send(text);
-}
-
-function msgGeneration(msg, from) {
-  const newMessage = document.createElement("h5");
-  newMessage.innerText = `${from} says: ${msg}`;
-  myMessages.appendChild(newMessage);
-}
-
+// if client's connection is up
 mywsServer.onopen = () => {
-  sendBtn.disabled = false;
+  $reset.disabled = false;
+
+  $reset.addEventListener("click", () => {
+    mywsServer.send("Reset");
+  });
 }
 
 mywsServer.onmessage = (event) => {
-  const { data } = event;
-  msgGeneration(data, "Server");
+  const data = JSON.parse(event.data);
+
+  switch (data.type) {
+    case "CountUpdate":
+      $count.innerText = data.value;
+      break;
+    case "UID":
+      $UID.innerText = data.value;
+      break;
+    case "Log":
+      console.log(data.value);
+      break;
+  }
 }

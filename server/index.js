@@ -2,6 +2,7 @@ const WebSocket = require("ws");
 const express = require("express");
 const app = express();
 const path = require("path");
+const crypto = require("crypto");
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
 
@@ -13,19 +14,23 @@ const wsServer = new WebSocket.Server({
   noServer: true
 });
 
-wsServer.on("connection", function(ws) {
-  const date = new Date();
-  const dateString = `${date.toDateString()} ${date.toLocaleTimeString()}`;
-  wsServer.clients.forEach((client) => {
-    client.send(`${dateString}: New client connected. Client count: ${wsServer.clients.size}`);
+function createUID() {
+  return crypto.randomBytes(4).toString("hex");
+}
+
+wsServer.on("connection", (ws) => {
+  ws.uid = createUID();
+  console.log(`Client connected: ${ws.uid}`);
+  ws.send(JSON.stringify({ type: "UID", value: ws.uid }));
+
+  ws.on("message", (msg) => {
+    const message = msg.toString();
+    switch (message) {
+      case "Reset":
+        count = 0;
+        break;
+    }
   });
-  ws.on("message", function(msg) {
-    wsServer.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(msg.toString());
-      }
-    })
-  })
 });
 
 myServer.on('upgrade', async function upgrade(request, socket, head) {
@@ -33,3 +38,20 @@ myServer.on('upgrade', async function upgrade(request, socket, head) {
     wsServer.emit('connection', ws, request);
   });
 });
+
+let count = 0;
+
+setInterval(() => {
+  count++;
+
+  const data = JSON.stringify(
+    {
+      type: "CountUpdate",
+      value: count
+    }
+  );
+
+  wsServer.clients.forEach((client) => {
+    client.send(data);
+  });
+}, 500);
