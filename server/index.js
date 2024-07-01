@@ -26,14 +26,6 @@ wsServer.on("connection", function(ws) {
   })
 });
 
-wsServer.on("disconnect", function(ws) {
-  const date = new Date();
-  const dateString = `${date.toDateString()} ${date.toLocaleTimeString()}`;
-  wsServer.clients.forEach(c => {
-    c.send(`${dateString}: A Client disconnected`);
-  });
-});
-
 myServer.on('upgrade', async function upgrade(request, socket, head) {
   wsServer.handleUpgrade(request, socket, head, function done(ws) {
     wsServer.emit('connection', ws, request);
