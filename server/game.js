@@ -51,6 +51,7 @@ class Lobby {
     if (!this.players.some(player => player.uid === uid)) {
       return false;
     }
+
     this.players = this.players.filter(player => player.uid !== uid);
 
     return true;
@@ -59,7 +60,7 @@ class Lobby {
 
 class Player {
   constructor() {
-    this.uid = 0;
+    this.uid = null;
     this.isReady = false;
 
     this.score = 0;

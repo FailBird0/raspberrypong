@@ -5,6 +5,7 @@ const $UID = document.getElementById("UID");
 const $conn = document.getElementById("conn");
 const $game = document.getElementById("game");
 const $lobbies = document.getElementById("lobbies");
+let myLobby = null;
 
 // if client's connection is up
 mywsServer.onopen = () => {
@@ -22,7 +23,7 @@ mywsServer.onmessage = (event) => {
       $UID.innerText = data.value;
       break;
     case "GameStatus":
-      $game.innerText = data.value;
+      myLobby = data.value;
       break;
     case "Lobby:list":
       const lobbies = data.value;
@@ -58,3 +59,9 @@ const joinLobby = (lobbyID) => {
 const quitLobby = (lobbyID) => {
   mywsServer.send(JSON.stringify({ type: "Lobby:quit", data: { lobbyID } }));
 };
+
+window.addEventListener("beforeunload", (e) => {
+  if (myLobby) {
+    quitLobby(myLobby);
+  }
+});

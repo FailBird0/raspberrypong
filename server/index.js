@@ -29,6 +29,7 @@ wsServer.on("connection", (ws) => {
         joinLobby(ws, message.data.lobbyID);
         break;
       case "Lobby:quit":
+        console.log(`${ws.uid} Quitting lobby ${message.data.lobbyID}`);
         quitLobby(ws, message.data.lobbyID);
         break;
       case "Lobby:getList":
@@ -50,6 +51,11 @@ myServer.on('upgrade', async function upgrade(request, socket, head) {
 
 // Game
 
+/**
+ * 
+ * @param {WebSocket} ws 
+ * @param {string} lobbyID 
+ */
 const joinLobby = (ws, lobbyID) => {
   const lobby = lobbies.get(lobbyID);
 
@@ -58,10 +64,21 @@ const joinLobby = (ws, lobbyID) => {
 
     if (res) {
       ws.send(JSON.stringify({ type: "GameStatus", value: lobbyID }));
+
+      wsServer.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          sendLobbyInfos(client);
+        }
+      });
     }
   }
 };
 
+/**
+ * 
+ * @param {WebSocket} ws 
+ * @param {string} lobbyID 
+ */
 const quitLobby = (ws, lobbyID) => {
   const lobby = lobbies.get(lobbyID);
 
@@ -73,6 +90,12 @@ const quitLobby = (ws, lobbyID) => {
 
     if (res) {
       ws.send(JSON.stringify({ type: "GameStatus", value: "disconnected" }));
+
+      wsServer.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          sendLobbyInfos(client);
+        }
+      });
     }
   }
 };
@@ -89,6 +112,10 @@ const createLobby = () => {
   );
 };
 
+/**
+ * 
+ * @param {WebSocket} ws 
+ */
 const sendLobbyInfos = (ws) => {
   const lobbyInfos = [];
 
@@ -97,7 +124,8 @@ const sendLobbyInfos = (ws) => {
       id: lobbyID,
       playerCount: lobby.players.length,
       targetPlayerCount: lobby.targetPlayerCount,
-      hasStarted: lobby.hasStarted
+      hasStarted: lobby.hasStarted,
+      playerList: lobby.players.map(player => player.uid)
     });
   });
 
