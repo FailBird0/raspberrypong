@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const crypto = require("crypto");
+const { createNewLobby } = require("./game");
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
 
@@ -14,20 +15,27 @@ const wsServer = new WebSocket.Server({
   noServer: true
 });
 
-function createUID() {
-  return crypto.randomBytes(4).toString("hex");
-}
-
 wsServer.on("connection", (ws) => {
-  ws.uid = createUID();
-  console.log(`Client connected: ${ws.uid}`);
+  // create UID for client
+  ws.uid = crypto.randomBytes(6).toString("hex");
   ws.send(JSON.stringify({ type: "UID", value: ws.uid }));
 
   ws.on("message", (msg) => {
-    const message = msg.toString();
-    switch (message) {
-      case "Reset":
-        count = 0;
+    const message = JSON.parse(msg.toString());
+
+    switch (message.type) {
+      case "Lobby:join":
+        console.log(`${ws.uid} Joining lobby ${message.data.lobbyID}`);
+        joinLobby(ws, message.data.lobbyID);
+        break;
+      case "Lobby:quit":
+        quitLobby(ws, message.data.lobbyID);
+        break;
+      case "Lobby:getList":
+        sendLobbyInfos(ws);
+        break;
+      default:
+        console.log(`Unknown message: ${message}`);
         break;
     }
   });
@@ -39,19 +47,54 @@ myServer.on('upgrade', async function upgrade(request, socket, head) {
   });
 });
 
-let count = 0;
 
-setInterval(() => {
-  count++;
+// Game
 
-  const data = JSON.stringify(
-    {
-      type: "CountUpdate",
-      value: count
-    }
+const joinLobby = (ws, lobbyID) => {
+  const lobby = lobbies.get(lobbyID);
+
+  if (lobby) {
+    lobby.players.push(ws);
+
+    ws.send(JSON.stringify({ type: "GameStatus", value: lobbyID }));
+  }
+};
+
+const quitLobby = (ws, lobbyID) => {
+  const lobby = lobbies.get(lobbyID);
+
+  if (lobby) {
+    lobbies.get(lobbyID).players = lobby.players.filter(player => player.uid !== ws.uid);
+
+    ws.send(JSON.stringify({ type: "GameStatus", value: "disconnected" }));
+  }
+};
+
+const lobbies = new Map();
+
+const createLobby = () => {
+  const lobbyID = crypto.randomBytes(4).toString("hex");
+  const lobby = createNewLobby(lobbyID, 2);
+
+  lobbies.set(
+    lobbyID,
+    lobby
   );
+};
 
-  wsServer.clients.forEach((client) => {
-    client.send(data);
+const sendLobbyInfos = (ws) => {
+  const lobbyInfos = [];
+
+  lobbies.forEach((lobby, lobbyID) => {
+    lobbyInfos.push({
+      id: lobbyID,
+      playerCount: lobby.players.length,
+      targetPlayerCount: lobby.targetPlayerCount,
+      hasStarted: lobby.hasStarted
+    });
   });
-}, 500);
+
+  ws.send(JSON.stringify({ type: "Lobby:list", value: lobbyInfos }));
+};
+
+createLobby();
