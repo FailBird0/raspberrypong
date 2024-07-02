@@ -54,3 +54,7 @@ mywsServer.onmessage = (event) => {
 const joinLobby = (lobbyID) => {
   mywsServer.send(JSON.stringify({ type: "Lobby:join", data: { lobbyID } }));
 };
+
+const quitLobby = (lobbyID) => {
+  mywsServer.send(JSON.stringify({ type: "Lobby:quit", data: { lobbyID } }));
+};

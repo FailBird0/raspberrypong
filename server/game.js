@@ -29,6 +29,32 @@ class Lobby {
 
     this.ball.update();
   }
+
+  playerJoin(uid) {
+    if (
+        this.players.length >= this.targetPlayerCount ||
+        this.hasStarted ||
+        this.players.some(player => player.uid === uid)
+    ) {
+      return false;
+    }
+
+    const player = new Player();
+    player.uid = uid;
+
+    this.players.push(player);
+
+    return true;
+  }
+  
+  playerQuit(uid) {
+    if (!this.players.some(player => player.uid === uid)) {
+      return false;
+    }
+    this.players = this.players.filter(player => player.uid !== uid);
+
+    return true;
+  }
 }
 
 class Player {

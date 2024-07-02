@@ -54,19 +54,26 @@ const joinLobby = (ws, lobbyID) => {
   const lobby = lobbies.get(lobbyID);
 
   if (lobby) {
-    lobby.players.push(ws);
+    const res = lobby.playerJoin(ws.uid);
 
-    ws.send(JSON.stringify({ type: "GameStatus", value: lobbyID }));
+    if (res) {
+      ws.send(JSON.stringify({ type: "GameStatus", value: lobbyID }));
+    }
   }
 };
 
 const quitLobby = (ws, lobbyID) => {
   const lobby = lobbies.get(lobbyID);
 
-  if (lobby) {
-    lobbies.get(lobbyID).players = lobby.players.filter(player => player.uid !== ws.uid);
+  if (
+      lobby &&
+      lobbies.get(lobbyID).players.some(player => player.uid === ws.uid)
+  ) {
+    const res = lobby.playerQuit(ws.uid);
 
-    ws.send(JSON.stringify({ type: "GameStatus", value: "disconnected" }));
+    if (res) {
+      ws.send(JSON.stringify({ type: "GameStatus", value: "disconnected" }));
+    }
   }
 };
 
