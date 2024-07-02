@@ -42,9 +42,9 @@ wsServer.on("connection", (ws) => {
   });
 });
 
-myServer.on('upgrade', async function upgrade(request, socket, head) {
+myServer.on("upgrade", async function upgrade(request, socket, head) {
   wsServer.handleUpgrade(request, socket, head, (ws) => {
-    wsServer.emit('connection', ws, request);
+    wsServer.emit("connection", ws, request);
   });
 });
 
@@ -63,7 +63,14 @@ const joinLobby = (ws, lobbyID) => {
     const res = lobby.playerJoin(ws.uid);
 
     if (res) {
-      ws.send(JSON.stringify({ type: "GameStatus", value: lobbyID }));
+      const json = JSON.stringify(
+        {
+          type: "Lobby:join",
+          lobbyID: lobbyID
+        }
+      );
+
+      ws.send(json);
 
       wsServer.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -89,7 +96,12 @@ const quitLobby = (ws, lobbyID) => {
     const res = lobby.playerQuit(ws.uid);
 
     if (res) {
-      ws.send(JSON.stringify({ type: "GameStatus", value: "disconnected" }));
+      const json = JSON.stringify(
+        {
+          type: "Lobby:quit"
+        }
+      );
+      ws.send(json);
 
       wsServer.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -131,5 +143,14 @@ const sendLobbyInfos = (ws) => {
 
   ws.send(JSON.stringify({ type: "Lobby:list", value: lobbyInfos }));
 };
+
+/**
+ * 
+ * @param {WebSocket} ws 
+ * @param {string} lobbyID 
+ */
+const sendLobbyInfo = (ws, lobbyID) => {
+  // TODO: only send 1 lobby
+}
 
 createLobby();
