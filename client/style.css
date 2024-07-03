@@ -2,3 +2,23 @@
   margin: 0;
   padding: 0;
 }
+
+#lobby .lobby-ready[data-ready="true"] {
+  background-color: green;
+}
+
+#lobby .lobby-ready[data-ready="false"] {
+  background-color: red;
+}
+
+#game {
+  height: 100vh;
+  background-color: #000000;
+  justify-content: center;
+  align-items: center;
+}
+
+#game #gameCanvas {
+  background-color: #ffffff;
+  display: block;
+}

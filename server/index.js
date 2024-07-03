@@ -18,7 +18,14 @@ const wsServer = new WebSocket.Server({
 wsServer.on("connection", (ws) => {
   // create UID for client
   ws.uid = crypto.randomBytes(6).toString("hex");
-  ws.send(JSON.stringify({ type: "UID", value: ws.uid }));
+  ws.send(JSON.stringify(
+    {
+      type: "UID:get",
+      payload: {
+        uid: ws.uid
+      }
+    }
+  ));
 
   ws.on("message", (msg) => {
     const message = JSON.parse(msg.toString());
@@ -32,8 +39,22 @@ wsServer.on("connection", (ws) => {
         console.log(`${ws.uid} Quitting lobby ${message.data.lobbyID}`);
         quitLobby(ws, message.data.lobbyID);
         break;
+      case "Lobby:readyState":
+        console.log(`${ws.uid} ReadyState change lobby ${message.data.lobbyID}`);
+        readyLobby(ws, message.data.lobbyID, message.data.isReady);
+        break;
       case "Lobby:getList":
         sendLobbyInfos(ws);
+        break;
+      case "Game:playerInput":
+        const lobby = lobbies.get(message.data.lobbyID);
+        const player = lobby.players.find(player => player.uid === ws.uid);
+        const inputs = message.data.inputs;
+
+        player.input.left = inputs.left;
+        player.input.right = inputs.right;
+        player.input.up = inputs.up;
+        player.input.down = inputs.down;
         break;
       default:
         console.log(`Unknown message: ${message}`);
@@ -66,7 +87,9 @@ const joinLobby = (ws, lobbyID) => {
       const json = JSON.stringify(
         {
           type: "Lobby:join",
-          lobbyID: lobbyID
+          payload: {
+            lobbyID: lobbyID
+          }
         }
       );
 
@@ -75,6 +98,7 @@ const joinLobby = (ws, lobbyID) => {
       wsServer.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           sendLobbyInfos(client);
+          sendLobbyInfo(client, lobbyID);
         }
       });
     }
@@ -112,6 +136,49 @@ const quitLobby = (ws, lobbyID) => {
   }
 };
 
+const readyLobby = (ws, lobbyID, isReady) => {
+  const lobby = lobbies.get(lobbyID);
+
+  if (lobby) {
+    lobby.players.find(player => player.uid === ws.uid).isReady = isReady;
+
+    const clientsArray = Array.from(wsServer.clients);
+    const playersWs = [];
+
+    for (const players of lobby.players) {
+      for (const client of clientsArray) {
+        if (client.uid === players.uid) {
+          playersWs.push(client);
+          sendLobbyInfo(client, lobbyID);
+        }
+      }
+    }
+
+    let gameStart = true;
+
+    for (const player of lobby.players) {
+      if (!player.isReady) {
+        gameStart = false;
+        break;
+      }
+    }
+
+    if (gameStart && lobby.players.length === lobby.targetPlayerCount) {
+      lobby.initGame();
+
+      for (const client of clientsArray) {
+        if (client.readyState === WebSocket.OPEN) {
+          sendLobbyInfos(client);
+        }
+      }
+
+      for (const player of playersWs) {
+        player.send(JSON.stringify({ type: "Game:start" }));
+      }
+    }
+  }
+}
+
 const lobbies = new Map();
 
 const createLobby = () => {
@@ -125,6 +192,7 @@ const createLobby = () => {
 };
 
 /**
+ * Send info of all lobbies to client ws
  * 
  * @param {WebSocket} ws 
  */
@@ -141,16 +209,79 @@ const sendLobbyInfos = (ws) => {
     });
   });
 
-  ws.send(JSON.stringify({ type: "Lobby:list", value: lobbyInfos }));
+  const json = JSON.stringify({
+    type: "Lobby:list",
+    payload: {
+      lobbies: lobbyInfos
+    }
+  });
+
+  ws.send(json);
 };
 
+
 /**
- * 
- * @param {WebSocket} ws 
- * @param {string} lobbyID 
+ * Send info of a single lobby to client ws
+ *
+ * @param {WebSocket} ws - WebSocket connection
+ * @param {string} lobbyID - ID of the lobby to send info for
  */
 const sendLobbyInfo = (ws, lobbyID) => {
-  // TODO: only send 1 lobby
+  const lobby = lobbies.get(lobbyID);
+
+  if (lobby) {
+    const lobbyData = {
+      id: lobbyID,
+      playerCount: lobby.players.length,
+      targetPlayerCount: lobby.targetPlayerCount,
+      hasStarted: lobby.hasStarted,
+      playerList: lobby.players.map(player => {
+        return {
+          uid: player.uid,
+          isReady: player.isReady
+        }
+      })
+    };
+
+    const json = JSON.stringify(
+      {
+        type: "Lobby:info",
+        payload: {
+          lobby: lobbyData
+        }
+      }
+    );
+
+    ws.send(json);
+  }
 }
 
 createLobby();
+
+function gameLoops() {
+  lobbies.forEach(lobby => {
+    if (lobby.hasStarted) {
+      lobby.update();
+
+      const json = JSON.stringify(
+        {
+          type: "Game:update",
+          payload: {
+            players: lobby.players,
+            ball: lobby.ball
+          }
+        }
+      );
+
+      lobby.players.forEach(player => {
+        for (const client of wsServer.clients) {
+          if (client.uid === player.uid) {
+            client.send(json);
+          }
+        }
+      });
+    }
+  });
+}
+
+setInterval(gameLoops, 1000 / 20);
