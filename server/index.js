@@ -4,11 +4,39 @@ const app = express();
 const path = require("path");
 const crypto = require("crypto");
 const { createNewLobby } = require("./game");
+let i2c = null;
+let oled = null;
+
+const port = 9876;
+
+let oledDisplay = null;
+const useOLEDDisplay = process.env.USE_OLEDDISPLAY === "true";
+
+if (useOLEDDisplay) {
+  try {
+    i2c = require("i2c-bus");
+    oled = require("oled-i2c-bus");
+  
+    const i2cBus = i2c.openSync(1);
+    const opts = {
+      width: 128,
+      height: 64
+    };
+  
+    oledDisplay = new oled(i2cBus, opts);
+    oledDisplay.turnOnDisplay();
+    oledDisplay.clearDisplay();
+    oledDisplay.dimDisplay(false);
+  }
+  catch (err) {
+    console.log("Failed to initialize OLED Display:", err);
+  }
+}
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
 
-const myServer = app.listen(9876, () => {
-  console.log(`Server listening on port 9876`);
+const myServer = app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
 
 const wsServer = new WebSocket.Server({
