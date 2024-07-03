@@ -1,6 +1,7 @@
 const WebSocket = require("ws");
 const express = require("express");
 const app = express();
+const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const { createNewLobby } = require("./game");
@@ -11,7 +12,22 @@ const oledFont = require("oled-font-5x7");
 const port = 9876;
 
 let oledDisplay = null;
-const useOLEDDisplay = true;
+const useOLEDDisplay = false;
+
+const nets = os.networkInterfaces();
+const results = {};
+
+for (const name of Object.keys(nets)) {
+  for (const net of nets[name]) {
+    const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+    if (net.family === familyV4Value && !net.internal) {
+      if (!results[name]) {
+        results[name] = [];
+      }
+      results[name].push(net.address);
+    }
+  }
+}
 
 if (useOLEDDisplay) {
   try {
@@ -29,7 +45,7 @@ if (useOLEDDisplay) {
     oledDisplay.turnOnDisplay();
     oledDisplay.clearDisplay();
     oledDisplay.dimDisplay(false);
-    oledDisplay.writeString(oledFont, 1, "raspberrypong", 1);
+    oledDisplay.writeString(oledFont, 1, JSON.stringify(results), 1, true);
     oledDisplay.update();
   }
   catch (err) {
