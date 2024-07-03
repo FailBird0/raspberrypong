@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",
+    "i2c-bus": "^5.2.3",
+    "oled-i2c-bus": "^1.0.12",
     "websocket": "^1.0.35",
     "ws": "^8.17.1"
   }
