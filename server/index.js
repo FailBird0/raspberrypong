@@ -27,6 +27,7 @@ if (useOLEDDisplay) {
     oledDisplay.turnOnDisplay();
     oledDisplay.clearDisplay();
     oledDisplay.dimDisplay(false);
+    oledDisplay.writeString(0, 0, "raspberrypong", 1);
   }
   catch (err) {
     console.log("Failed to initialize OLED Display:", err);
