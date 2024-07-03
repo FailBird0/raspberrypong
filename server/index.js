@@ -6,11 +6,12 @@ const crypto = require("crypto");
 const { createNewLobby } = require("./game");
 let i2c = null;
 let oled = null;
+const oledFont = require("oled-font-5x7");
 
 const port = 9876;
 
 let oledDisplay = null;
-const useOLEDDisplay = process.env.USE_OLEDDISPLAY === "true";
+const useOLEDDisplay = true;
 
 if (useOLEDDisplay) {
   try {
@@ -20,14 +21,16 @@ if (useOLEDDisplay) {
     const i2cBus = i2c.openSync(1);
     const opts = {
       width: 128,
-      height: 64
+      height: 64,
+      address: 0x3C
     };
   
     oledDisplay = new oled(i2cBus, opts);
     oledDisplay.turnOnDisplay();
     oledDisplay.clearDisplay();
     oledDisplay.dimDisplay(false);
-    oledDisplay.writeString(0, 0, "raspberrypong", 1);
+    oledDisplay.writeString(oledFont, 1, "raspberrypong", 1);
+    oledDisplay.updateDisplay();
   }
   catch (err) {
     console.log("Failed to initialize OLED Display:", err);
