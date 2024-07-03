@@ -284,4 +284,4 @@ function gameLoops() {
   });
 }
 
-setInterval(gameLoops, 1000 / 20);
+setInterval(gameLoops, 1000 / 60);

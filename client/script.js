@@ -27,6 +27,9 @@ const inputs = {
   right: false
 };
 
+let gameState;
+let modGameState;
+
 // if client's connection is up
 mywsServer.onopen = () => {
   mywsServer.send(JSON.stringify({ type: "Lobby:getList" }));
@@ -96,24 +99,6 @@ const readyLobby = (lobbyID, isReady) => {
     }
   ));
 };
-
-const renderGame = (game) => {
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-
-  const players = game.players;
-  const ball = game.ball;
-
-  for (const player of players) {
-    ctx.beginPath();
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(player.pos.x, player.pos.y, player.size.x, player.size.y);
-  }
-
-  ctx.beginPath();
-  ctx.arc(ball.pos.x, ball.pos.y, 16, 0, 2 * Math.PI);
-  ctx.fillStyle = "#000000";
-  ctx.fill();
-}
 
 
 const handleUIDGet = (data) => {
@@ -193,8 +178,42 @@ const handleGameStart = () => {
 };
 
 const handleGameUpdate = (data) => {
-  renderGame(data.payload);
+  gameState = data.payload;
 };
+
+const renderGame = () => {
+  requestAnimationFrame(renderGame);
+
+  if (!gameRunning || !gameState) {
+    return;
+  }
+
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+
+  const players = gameState.players;
+  const ball = gameState.ball;
+
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
+
+    ctx.beginPath();
+    ctx.fillStyle = "#c0c0c0";
+    ctx.font = "20px monospace";
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "center";
+    ctx.fillText(player.score, player.pos.x + player.size.x / 2, player.pos.y - 4);
+
+    ctx.beginPath();
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(player.pos.x, player.pos.y, player.size.x, player.size.y);
+  }
+
+  ctx.beginPath();
+  ctx.arc(ball.pos.x, ball.pos.y, 16, 0, 2 * Math.PI);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+};
+requestAnimationFrame(renderGame);
 
 
 window.addEventListener("beforeunload", () => {
