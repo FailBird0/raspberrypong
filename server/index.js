@@ -12,7 +12,7 @@ const oledFont = require("oled-font-5x7");
 const port = 9876;
 
 let oledDisplay = null;
-const useOLEDDisplay = false;
+const useOLEDDisplay = true;
 
 const nets = os.networkInterfaces();
 const results = {};
