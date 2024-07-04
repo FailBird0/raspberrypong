@@ -12,7 +12,6 @@ const oledFont = require("oled-font-5x7");
 const port = 9876;
 
 let oledDisplay = null;
-const useOLEDDisplay = true;
 
 const nets = os.networkInterfaces();
 const results = {};
@@ -29,28 +28,26 @@ for (const name of Object.keys(nets)) {
   }
 }
 
-if (useOLEDDisplay) {
-  try {
-    i2c = require("i2c-bus");
-    oled = require("oled-i2c-bus");
-  
-    const i2cBus = i2c.openSync(1);
-    const opts = {
-      width: 128,
-      height: 64,
-      address: 0x3C
-    };
-  
-    oledDisplay = new oled(i2cBus, opts);
-    oledDisplay.turnOnDisplay();
-    oledDisplay.clearDisplay();
-    oledDisplay.dimDisplay(false);
-    oledDisplay.writeString(oledFont, 1, JSON.stringify(results), 1, true);
-    oledDisplay.update();
-  }
-  catch (err) {
-    console.log("Failed to initialize OLED Display:", err);
-  }
+try {
+  i2c = require("i2c-bus");
+  oled = require("oled-i2c-bus");
+
+  const i2cBus = i2c.openSync(1);
+  const opts = {
+    width: 128,
+    height: 64,
+    address: 0x3C
+  };
+
+  oledDisplay = new oled(i2cBus, opts);
+  oledDisplay.turnOnDisplay();
+  oledDisplay.clearDisplay();
+  oledDisplay.dimDisplay(false);
+  oledDisplay.writeString(oledFont, 1, JSON.stringify(results), 1, true);
+  oledDisplay.update();
+}
+catch (err) {
+  console.log("Failed to initialize OLED Display:", err);
 }
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
