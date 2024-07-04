@@ -43,7 +43,7 @@ try {
   oledDisplay.turnOnDisplay();
   oledDisplay.clearDisplay();
   oledDisplay.dimDisplay(false);
-  oledDisplay.writeString(oledFont, 1, JSON.stringify(results), 1, true);
+  oledDisplay.writeString(oledFont, 2, JSON.stringify(results), 1, true);
   oledDisplay.update();
 } catch (err) {
   console.log("Failed to initialize OLED Display.");
