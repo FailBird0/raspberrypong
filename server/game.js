@@ -9,6 +9,13 @@ const createNewLobby = (id) => {
 
 module.exports = { createNewLobby };
 
+const gameWidth = 800;
+const gameHeight = 600;
+const gameCenter = {
+  x: gameWidth / 2,
+  y: gameHeight / 2
+};
+
 class Lobby {
   /**
    * @param {string} id
@@ -17,9 +24,6 @@ class Lobby {
     this.lobbyID = id;
     this.targetPlayerCount = 2;
     this.hasStarted = false;
-
-    this.gameWidth = 800;
-    this.gameHeight = 600;
 
     /** @type {Player[]} */
     this.players = [];
@@ -37,19 +41,17 @@ class Lobby {
 
     if (this.ball.pos.x - this.ball.radius < 0) {
       // Hit left wall
-      this.ball.pos.x = this.gameWidth / 2;
-      this.ball.pos.y = this.gameHeight / 2;
+      this.ball.reset(gameCenter);
 
       this.players[1].score++;
-    } else if (this.ball.pos.x + this.ball.radius > this.gameWidth) {
+    } else if (this.ball.pos.x + this.ball.radius > gameWidth) {
       // Hit right wall
-      this.ball.pos.x = this.gameWidth / 2;
-      this.ball.pos.y = this.gameHeight / 2;
+      this.ball.reset(gameCenter);
 
       this.players[0].score++;
     }
     
-    if (this.ball.pos.y - this.ball.radius < 0 || this.ball.pos.y + this.ball.radius > this.gameHeight) {
+    if (this.ball.pos.y - this.ball.radius < 0 || this.ball.pos.y + this.ball.radius > gameHeight) {
       // Hit top or bottom
       this.ball.vel.y = -this.ball.vel.y;
     }
@@ -104,11 +106,11 @@ class Lobby {
       this.players[1].size.y = 175;
 
       this.players[0].pos.x = this.players[0].size.x;
-      this.players[0].pos.y = this.gameHeight / 2 - this.players[0].size.y;
-      this.players[1].pos.x = this.gameWidth - this.players[1].size.x * 2;
-      this.players[1].pos.y = this.gameHeight / 2 - this.players[1].size.y;
+      this.players[0].pos.y = gameHeight / 2 - this.players[0].size.y;
+      this.players[1].pos.x = gameWidth - this.players[1].size.x * 2;
+      this.players[1].pos.y = gameHeight / 2 - this.players[1].size.y;
 
-      this.ball.reset({ x: this.gameWidth / 2, y: this.gameHeight / 2 });
+      this.ball.reset(gameCenter);
 
       this.hasStarted = true;
     }
@@ -151,6 +153,13 @@ class Player {
     } else if (this.input.down) {
       this.pos.y += 10;
     }
+
+    if (this.pos.y < this.size.x) {
+      // using this.size.x as padding
+      this.pos.y = this.size.x;
+    } else if (this.pos.y + this.size.y + this.size.x > gameHeight) {
+      this.pos.y = gameHeight - this.size.y - this.size.x;
+    }
   }
 }
 
@@ -178,8 +187,8 @@ class Ball {
 
   reset(mapCenter) {
     this.pos = {
-      x: mapCenter.x / 2,
-      y: mapCenter.y / 2
+      x: mapCenter.x,
+      y: mapCenter.y
     };
 
     let angle = Math.random() * Math.PI / 2 - Math.PI / 4;
