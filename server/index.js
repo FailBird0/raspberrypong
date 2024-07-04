@@ -43,7 +43,18 @@ try {
   oledDisplay.turnOnDisplay();
   oledDisplay.clearDisplay();
   oledDisplay.dimDisplay(false);
-  oledDisplay.writeString(oledFont, 2, JSON.stringify(results), 1, true);
+  oledDisplay.writeString(oledFont, 0, "Pong Server Online", 1, true);
+
+  let ipsString = "";
+
+  for (const name of Object.keys(results)) {
+    let nameStr = `${name}: `;
+    ipsString += nameStr;
+
+    ipsString += results[name].join("\n" + " ".repeat(nameStr.length)) + "\n";
+  }
+
+  oledDisplay.writeString(oledFont, 1, ipsString, 1, true);
   oledDisplay.update();
 } catch (err) {
   console.log("Failed to initialize OLED Display.");
