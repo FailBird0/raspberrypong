@@ -43,7 +43,7 @@ try {
   oledDisplay.turnOnDisplay();
   oledDisplay.clearDisplay();
   oledDisplay.dimDisplay(false);
-  oledDisplay.writeString(oledFont, 1, `  Pong Server Online\nPort: ${port}\n\n`, 1, false);
+  oledDisplay.writeString(oledFont, 1, `  Pong Server Online\n       Port: ${port}\n\n`, 1, false);
 
   let ipsString = "";
 
