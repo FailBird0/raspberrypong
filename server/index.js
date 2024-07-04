@@ -45,9 +45,9 @@ try {
   oledDisplay.dimDisplay(false);
   oledDisplay.writeString(oledFont, 1, JSON.stringify(results), 1, true);
   oledDisplay.update();
-}
-catch (err) {
-  console.log("Failed to initialize OLED Display:", err);
+} catch (err) {
+  console.log("Failed to initialize OLED Display.");
+  oledDisplay = null;
 }
 
 app.use("/", express.static(path.resolve(__dirname, "../client")));
