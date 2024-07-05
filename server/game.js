@@ -9,8 +9,8 @@ const createNewLobby = (id) => {
 
 module.exports = { createNewLobby };
 
-const gameWidth = 800;
-const gameHeight = 600;
+const gameWidth = 1200;
+const gameHeight = 750;
 const gameCenter = {
   x: gameWidth / 2,
   y: gameHeight / 2

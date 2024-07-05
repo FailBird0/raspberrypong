@@ -169,10 +169,7 @@ const joinLobby = (ws, lobbyID) => {
 const quitLobby = (ws, lobbyID) => {
   const lobby = lobbies.get(lobbyID);
 
-  if (
-      lobby &&
-      lobbies.get(lobbyID).players.some(player => player.uid === ws.uid)
-  ) {
+  if (lobby.players.some(player => player.uid === ws.uid)) {
     const res = lobby.playerQuit(ws.uid);
 
     if (res) {
@@ -229,7 +226,13 @@ const readyLobby = (ws, lobbyID, isReady) => {
       }
 
       for (const player of playersWs) {
-        player.send(JSON.stringify({ type: "Game:start" }));
+        const json = JSON.stringify(
+          {
+            type: "Game:start"
+          }
+        );
+
+        player.send(json);
       }
     }
   }

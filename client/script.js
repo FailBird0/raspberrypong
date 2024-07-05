@@ -11,8 +11,8 @@ const $canvas = document.getElementById("gameCanvas");
 /** @type {CanvasRenderingContext2D} */
 const ctx = $canvas.getContext("2d");
 
-$canvas.width = 800;
-$canvas.height = 600;
+$canvas.width = 1200;
+$canvas.height = 750;
 
 let uid = null;
 let myLobby = null;
@@ -161,7 +161,7 @@ const handleLobbyInfo = (data) => {
 
   $lobbyID.innerHTML = lobby.id;
   $lobbyPlayers.innerHTML = `${lobby.playerCount}/${lobby.targetPlayerCount} Players`;
-  $lobbyReady.innerHTML = newReadyState ? "Unready" : "Ready";
+  $lobbyReady.innerHTML = newReadyState ? "Not Ready" : "Ready";
   $lobbyReady.onclick = () => {
     $lobbyReady.setAttribute("data-ready", newReadyState);
     readyLobby(lobby.id, newReadyState);
@@ -197,16 +197,16 @@ const renderGame = () => {
     const player = players[i];
 
     ctx.beginPath();
-    ctx.fillStyle = "#c0c0c0";
-    ctx.font = "20px monospace";
-    ctx.textBaseline = "bottom";
-    ctx.textAlign = "center";
-    ctx.fillText(player.score, player.pos.x + player.size.x / 2, player.pos.y - 4);
-
-    ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.fillRect(player.pos.x, player.pos.y, player.size.x, player.size.y);
   }
+
+  ctx.beginPath();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "32px monospace";
+  ctx.fillStyle = "#c0c0c0";
+  ctx.fillText(`${players[0].score}:${players[1].score}`, $canvas.width / 2, $canvas.height / 2);
 
   ctx.beginPath();
   ctx.arc(ball.pos.x, ball.pos.y, 16, 0, 2 * Math.PI);
