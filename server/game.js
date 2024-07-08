@@ -68,29 +68,30 @@ class Lobby {
     }
   }
 
-  playerJoin(uid) {
+  playerJoin(playerInfo) {
     if (
         this.players.length >= this.targetPlayerCount ||
         this.hasStarted ||
-        this.players.some(player => player.uid === uid)
+        this.players.some(player => player.uuid === playerInfo.uuid)
     ) {
       return false;
     }
 
     const player = new Player();
-    player.uid = uid;
+    player.uuid = playerInfo.uuid;
+    player.name = playerInfo.name;
 
     this.players.push(player);
 
     return true;
   }
   
-  playerQuit(uid) {
-    if (!this.players.some(player => player.uid === uid)) {
+  playerQuit(uuid) {
+    if (!this.players.some(player => player.uuid === uuid)) {
       return false;
     }
 
-    this.players = this.players.filter(player => player.uid !== uid);
+    this.players = this.players.filter(player => player.uuid !== uuid);
 
     if (this.players.length < this.targetPlayerCount) {
       // TODO: Handle Player quitting
@@ -119,7 +120,8 @@ class Lobby {
 
 class Player {
   constructor() {
-    this.uid = null;
+    this.uuid = null;
+    this.name = null;
     this.isReady = false;
 
     this.score = 0;

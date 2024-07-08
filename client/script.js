@@ -14,7 +14,8 @@ const ctx = $canvas.getContext("2d");
 $canvas.width = 1200;
 $canvas.height = 750;
 
-let uid = null;
+let uuid = null;
+let myName = null;
 let myLobby = null;
 let isInHome = true;
 let isReady = false;
@@ -26,6 +27,8 @@ const inputs = {
   left: false,
   right: false
 };
+
+let prevInputs;
 
 let gameState;
 let modGameState;
@@ -39,8 +42,8 @@ mywsServer.onmessage = (event) => {
   const data = JSON.parse(event.data);
 
   switch (data.type) {
-    case "UID:get":
-      handleUIDGet(data);
+    case "User:getUUID":
+      handleUUIDGet(data);
       break;
     case "Lobby:join":
       handleLobbyJoin(data);
@@ -101,9 +104,9 @@ const readyLobby = (lobbyID, isReady) => {
 };
 
 
-const handleUIDGet = (data) => {
-  uid = data.payload.uid;
-  $home.querySelector(".home-UID").innerHTML = uid;
+const handleUUIDGet = (data) => {
+  uuid = data.payload.uuid;
+  $home.querySelector(".home-UUID").innerHTML = uuid;
 };
 
 const handleLobbyJoin = (data) => {
@@ -136,7 +139,7 @@ const handleLobbyList = (data) => {
   lobbies.forEach(lobby => {
     const li = document.createElement("li");
     li.innerHTML = `
-          <p>#${lobby.id}</p>
+          <p><strong>${lobby.id}</strong></p>
           <p>${lobby.playerCount}/${lobby.targetPlayerCount} Players</p>
           <p>${lobby.hasStarted ? "Running" : "In Lobby"}</p>`;
 
@@ -151,18 +154,36 @@ const handleLobbyList = (data) => {
 
 const handleLobbyInfo = (data) => {
   const $lobbyID = $lobby.querySelector(".lobby-id");
-  const $lobbyPlayers = $lobby.querySelector(".lobby-players");
+  const $lobbyPlayerList = $lobby.querySelector(".lobby-player-list");
   const $lobbyReady = $lobby.querySelector(".lobby-ready");
   const $lobbyQuit = $lobby.querySelector(".lobby-quit");
 
-  const newReadyState = $lobbyReady.getAttribute("data-ready") === "true" ? false : true;
+  const readyState = $lobbyReady.getAttribute("data-ready") === "true";
 
   const lobby = data.payload.lobby;
 
   $lobbyID.innerHTML = lobby.id;
-  $lobbyPlayers.innerHTML = `${lobby.playerCount}/${lobby.targetPlayerCount} Players`;
-  $lobbyReady.innerHTML = newReadyState ? "Not Ready" : "Ready";
+  $lobbyPlayerList.innerHTML = "";
+
+  for (let i = 0; i < lobby.targetPlayerCount; i++) {
+    const player = lobby.playerList[i];
+    const li = document.createElement("li");
+
+    if (player) {
+      li.innerHTML = `
+            <p><strong>${player.name ?? "[No Name]"}</strong></p>
+            <p><small>${player.uuid}</small></p>
+            <p>${player.isReady ? "Ready" : "Not Ready"}</p>`;
+    } else {
+      li.innerHTML = "<p>Waiting for player...</p>";
+    }
+
+    $lobbyPlayerList.append(li);
+  }
+
+  $lobbyReady.innerHTML = readyState ? "Ready" : "Not Ready";
   $lobbyReady.onclick = () => {
+    const newReadyState = !readyState;
     $lobbyReady.setAttribute("data-ready", newReadyState);
     readyLobby(lobby.id, newReadyState);
   };
@@ -216,6 +237,28 @@ const renderGame = () => {
 requestAnimationFrame(renderGame);
 
 
+$home.querySelector(".home-name").value = myName ?? "";
+
+$home.querySelector(".home-name-save").onclick = () => {
+  let newName = $home.querySelector(".home-name").value;
+  console.log(newName);
+
+  if (newName === "") {
+    newName = null;
+  }
+
+  myName = newName;
+
+  const json = JSON.stringify({
+    type: "User:saveName",
+    payload: {
+      name: newName
+    }
+  });
+
+  mywsServer.send(json);
+};
+
 window.addEventListener("beforeunload", () => {
   if (myLobby) {
     quitLobby(myLobby);
@@ -261,7 +304,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 function gameUpdate() {
-  if (!gameRunning) {
+  if (!gameRunning || (JSON.stringify(inputs) === prevInputs)) {
     return;
   }
 
@@ -273,7 +316,9 @@ function gameUpdate() {
     }
   });
 
+  prevInputs = JSON.stringify(inputs);
+
   mywsServer.send(json);
 }
 
-setInterval(gameUpdate, 1000 / 20);
+setInterval(gameUpdate, 1000 / 15);
