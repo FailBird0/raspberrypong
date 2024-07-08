@@ -241,7 +241,6 @@ $home.querySelector(".home-name").value = myName ?? "";
 
 $home.querySelector(".home-name-save").onclick = () => {
   let newName = $home.querySelector(".home-name").value;
-  console.log(newName);
 
   if (newName === "") {
     newName = null;

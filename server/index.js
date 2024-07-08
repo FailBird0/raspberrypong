@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const { createNewLobby } = require("./game");
 let i2c = null;
 let oled = null;
-const oledFont = require("oled-font-5x7");
+let oledFont = null;
 
 const port = 9876;
 
@@ -31,6 +31,7 @@ for (const name of Object.keys(nets)) {
 try {
   i2c = require("i2c-bus");
   oled = require("oled-i2c-bus");
+  oledFont = require("oled-font-5x7");
 
   const i2cBus = i2c.openSync(1);
   const opts = {
