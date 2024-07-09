@@ -140,6 +140,7 @@ const handleLobbyQuit = () => {
   myLobby = null;
   isInHome = true;
   isReady = false;
+  gameRunning = false;
 
   $home.style.display = "block";
   $lobby.style.display = "none";

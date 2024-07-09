@@ -34,12 +34,6 @@ class Lobby {
   }
 
   update() {
-    if (this.players.length < this.targetPlayerCount) {
-      this.resetLobby();
-
-      return;
-    }
-
     this.players.forEach(player => {
       player.update();
     });
@@ -100,8 +94,8 @@ class Lobby {
 
     this.players = this.players.filter(player => player.uuid !== uuid);
 
-    if (this.players.length < this.targetPlayerCount) {
-      // TODO: Handle Player quitting
+    if (this.players.length < this.targetPlayerCount && this.hasStarted) {
+      this.resetLobby();
     }
 
     return true;
