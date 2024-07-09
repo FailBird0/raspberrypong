@@ -64,7 +64,16 @@ class Lobby {
         this.ball.pos.y - this.ball.radius < player.pos.y + player.size.y &&
         this.ball.pos.y + this.ball.radius > player.pos.y
       ) {
-        this.ball.vel.x = -this.ball.vel.x;
+        // Hit player
+        this.ball.vel.x *= -1;
+
+        let ballAngle = Math.atan2( this.ball.vel.y, this.ball.vel.x );
+        let playerSpeed = player.vel.y;
+
+        ballAngle += (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+
+        this.ball.vel.x = Math.cos(ballAngle) * this.ball.speed;
+        this.ball.vel.y = Math.sin(ballAngle) * this.ball.speed;
       }
     }
   }
@@ -148,10 +157,10 @@ class Player {
     }
 
     this.input = {
-      left: false,
-      right: false,
       up: false,
-      down: false
+      down: false,
+      left: false,
+      right: false
     };
   }
 
@@ -183,9 +192,9 @@ class Ball {
       y: null
     };
 
-    this.radius = 16;
+    this.radius = 12;
 
-    this.speed = 8;
+    this.speed = 12;
     this.vel = {
       x: null,
       y: null
