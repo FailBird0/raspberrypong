@@ -23,6 +23,7 @@ class Lobby {
   constructor(id) {
     this.lobbyID = id;
     this.targetPlayerCount = 2;
+    this.isResetting = false;
     this.hasStarted = false;
 
     /** @type {Player[]} */
@@ -33,6 +34,12 @@ class Lobby {
   }
 
   update() {
+    if (this.players.length < this.targetPlayerCount) {
+      this.resetLobby();
+
+      return;
+    }
+
     this.players.forEach(player => {
       player.update();
     });
@@ -115,6 +122,11 @@ class Lobby {
 
       this.hasStarted = true;
     }
+  }
+  resetLobby() {
+    this.isResetting = true; // handled in index.js:gameLoops()
+    this.hasStarted = false;
+    this.ball.reset(gameCenter);
   }
 }
 

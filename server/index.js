@@ -199,6 +199,12 @@ const quitLobby = (ws, lobbyID) => {
       wsServer.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           sendLobbyInfos(client);
+
+          for (const player of lobby.players) {
+            if (client.uuid === player.uuid) {
+              sendLobbyInfo(client, lobbyID);
+            }
+          }
         }
       });
     }
@@ -337,6 +343,7 @@ createLobby();
 function gameLoops() {
   lobbies.forEach(lobby => {
     if (lobby.hasStarted) {
+      // game update
       lobby.update();
 
       const json = JSON.stringify(
@@ -349,13 +356,24 @@ function gameLoops() {
         }
       );
 
-      lobby.players.forEach(player => {
+      for (const player of lobby.players) {
         for (const client of wsServer.clients) {
           if (client.uuid === player.uuid) {
             client.send(json);
           }
         }
-      });
+      }
+    } else if (lobby.isResetting) {
+      // reset lobby
+      for (const player of lobby.players) {
+        for (const client of wsServer.clients) {
+          if (client.uuid === player.uuid) {
+            quitLobby(client, lobby.lobbyID);
+          }
+        }
+      }
+
+      lobby.isResetting = false;
     }
   });
 }

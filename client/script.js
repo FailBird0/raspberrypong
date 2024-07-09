@@ -103,6 +103,23 @@ const readyLobby = (lobbyID, isReady) => {
   ));
 };
 
+/**
+ * 
+ * @param {Boolean | null} newState 
+ */
+const flipReadyState = (newState = null) => {
+  if (newState === null) {
+    isReady = !isReady;
+  } else {
+    isReady = newState;
+  }
+
+  const $lobbyReady = $lobby.querySelector(".lobby-ready");
+
+  $lobbyReady.setAttribute("data-ready", isReady);
+  $lobbyReady.innerHTML = isReady ? "Ready" : "Not Ready";
+}
+
 
 const handleUUIDGet = (data) => {
   uuid = data.payload.uuid;
@@ -127,6 +144,8 @@ const handleLobbyQuit = () => {
   $home.style.display = "block";
   $lobby.style.display = "none";
   $game.style.display = "none";
+
+  flipReadyState(false);
 };
 
 const handleLobbyList = (data) => {
