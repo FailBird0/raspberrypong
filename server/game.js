@@ -71,9 +71,9 @@ class Lobby {
         let playerSpeed = player.vel.y;
 
         if (this.ball.vel.x > 0) {
-          ballAngle -= (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+          ballAngle -= (Math.PI / 2.5 * Math.tanh(-playerSpeed / 10)) / 3;
         } else {
-          ballAngle += (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+          ballAngle += (Math.PI / 2.5 * Math.tanh(-playerSpeed / 10)) / 3;
         }
 
         this.ball.vel.x = Math.cos(ballAngle) * this.ball.speed;
@@ -198,7 +198,7 @@ class Ball {
 
     this.radius = 12;
 
-    this.speed = 12;
+    this.speed = 16;
     this.vel = {
       x: null,
       y: null
