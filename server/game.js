@@ -70,7 +70,11 @@ class Lobby {
         let ballAngle = Math.atan2( this.ball.vel.y, this.ball.vel.x );
         let playerSpeed = player.vel.y;
 
-        ballAngle += (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+        if (this.ball.vel.x > 0) {
+          ballAngle -= (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+        } else {
+          ballAngle += (Math.PI / 2 * Math.tanh(-playerSpeed / 10)) / 3;
+        }
 
         this.ball.vel.x = Math.cos(ballAngle) * this.ball.speed;
         this.ball.vel.y = Math.sin(ballAngle) * this.ball.speed;
