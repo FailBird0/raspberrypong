@@ -218,7 +218,31 @@ const handleGameStart = () => {
 };
 
 const handleGameUpdate = (data) => {
-  gameState = data.payload;
+  gameState = {
+    players: (() => {
+      let players = [];
+
+      for (const p of data.payload.p) {
+        players.push({
+          // uuid: p.i,
+          // name: p.n,
+          pos: { x: p.p[0], y: p.p[1] },
+          size: { x: p.d[0], y: p.d[1] },
+          score: p.s
+        });
+      }
+
+      return players;
+    })(),
+    ball: (() => {
+      let ball = data.payload.b;
+
+      return {
+        pos: { x: ball.p[0], y: ball.p[1] },
+        radius: ball.r
+      };
+    })()
+  };
 };
 
 const renderGame = () => {
@@ -249,7 +273,7 @@ const renderGame = () => {
   ctx.fillText(`${players[0].score}:${players[1].score}`, $canvas.width / 2, $canvas.height / 2);
 
   ctx.beginPath();
-  ctx.arc(ball.pos.x, ball.pos.y, 16, 0, 2 * Math.PI);
+  ctx.arc(ball.pos.x, ball.pos.y, ball.radius, 0, 2 * Math.PI);
   ctx.fillStyle = "#000000";
   ctx.fill();
 };

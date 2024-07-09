@@ -346,12 +346,32 @@ function gameLoops() {
       // game update
       lobby.update();
 
+      // compressing json / omitting unnecessary data
       const json = JSON.stringify(
         {
           type: "Game:update",
           payload: {
-            players: lobby.players,
-            ball: lobby.ball
+            p: (() => {
+              let data = [];
+
+              lobby.players.forEach(player => {
+                data.push({
+                  // i: player.uuid,
+                  // n: player.name, // uuid, name not neccessary
+                  p: [Math.floor(player.pos.x), Math.floor(player.pos.y)],
+                  d: [Math.floor(player.size.x), Math.floor(player.size.y)],
+                  s: player.score
+                });
+              });
+
+              return data;
+            })(),
+            b: (() => {
+              return {
+                p: [Math.floor(lobby.ball.pos.x), Math.floor(lobby.ball.pos.y)],
+                r: lobby.ball.radius
+              };
+            })()
           }
         }
       );

@@ -163,10 +163,15 @@ class Player {
 
   update() {
     if (this.input.up) {
-      this.pos.y -= 10;
+      this.vel.y = -10;
     } else if (this.input.down) {
-      this.pos.y += 10;
+      this.vel.y = 10;
+    } else {
+      this.vel.y = 0;
     }
+
+    // this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
 
     if (this.pos.y < this.size.x) {
       // using this.size.x as padding
@@ -187,7 +192,6 @@ class Ball {
     this.radius = 16;
 
     this.speed = 8;
-    this.angle = null;
     this.vel = {
       x: null,
       y: null
