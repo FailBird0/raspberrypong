@@ -76,6 +76,7 @@ wsServer.on("connection", (ws) => {
   // create UUID for client
   ws.uuid = crypto.randomUUID();
   ws.name = null;
+  console.log(new Date().getMilliseconds());
   ws.send(JSON.stringify(
     {
       type: "User:getUUID",

@@ -15,5 +15,9 @@
     "oled-i2c-bus": "^1.0.12",
     "websocket": "^1.0.35",
     "ws": "^8.17.1"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8",
+    "utf-8-validate": "^6.0.4"
   }
 }

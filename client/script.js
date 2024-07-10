@@ -39,6 +39,7 @@ mywsServer.onopen = () => {
 }
 
 mywsServer.onmessage = (event) => {
+  console.log(new Date().getMilliseconds());
   const data = JSON.parse(event.data);
 
   switch (data.type) {
