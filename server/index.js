@@ -76,7 +76,6 @@ wsServer.on("connection", (ws) => {
   // create UUID for client
   ws.uuid = crypto.randomUUID();
   ws.name = null;
-  console.log(new Date().getMilliseconds());
   ws.send(JSON.stringify(
     {
       type: "User:getUUID",
@@ -353,25 +352,28 @@ function gameLoops() {
           type: "Game:update",
           payload: {
             p: (() => {
-              let data = [];
-
-              lobby.players.forEach(player => {
-                data.push({
-                  // i: player.uuid,
-                  // n: player.name, // uuid, name not neccessary
-                  p: [Math.floor(player.pos.x), Math.floor(player.pos.y)],
-                  d: [Math.floor(player.size.x), Math.floor(player.size.y)],
-                  s: player.score
-                });
-              });
-
-              return data;
+              return lobby.players.map(player => ({
+                // i: player.uuid,
+                // n: player.name, // uuid, name not neccessary
+                p: [Math.floor(player.pos.x), Math.floor(player.pos.y)],
+                d: [Math.floor(player.size.x), Math.floor(player.size.y)],
+                s: player.score
+              }));
             })(),
             b: (() => {
               return {
                 p: [Math.floor(lobby.ball.pos.x), Math.floor(lobby.ball.pos.y)],
                 r: lobby.ball.radius
               };
+            })(),
+            u: (() => {
+              return lobby.powerups.map(powerup => {
+                return {
+                  t: powerup.effect.type,
+                  p: [Math.floor(powerup.pos.x), Math.floor(powerup.pos.y)],
+                  r: powerup.radius
+                };
+              });
             })()
           }
         }

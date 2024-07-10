@@ -39,7 +39,6 @@ mywsServer.onopen = () => {
 }
 
 mywsServer.onmessage = (event) => {
-  console.log(new Date().getMilliseconds());
   const data = JSON.parse(event.data);
 
   switch (data.type) {
@@ -222,19 +221,15 @@ const handleGameStart = () => {
 const handleGameUpdate = (data) => {
   gameState = {
     players: (() => {
-      let players = [];
-
-      for (const p of data.payload.p) {
-        players.push({
+      return data.payload.p.map(p => {
+        return {
           // uuid: p.i,
           // name: p.n,
           pos: { x: p.p[0], y: p.p[1] },
           size: { x: p.d[0], y: p.d[1] },
           score: p.s
-        });
-      }
-
-      return players;
+        };
+      });
     })(),
     ball: (() => {
       let ball = data.payload.b;
@@ -243,6 +238,15 @@ const handleGameUpdate = (data) => {
         pos: { x: ball.p[0], y: ball.p[1] },
         radius: ball.r
       };
+    })(),
+    powerups: (() => {
+      return data.payload.u.map(u => {
+        return {
+          type: u.t,
+          pos: { x: u.p[0], y: u.p[1] },
+          radius: u.r
+        };
+      });
     })()
   };
 };
@@ -267,6 +271,20 @@ const renderGame = () => {
     ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.fillRect(player.pos.x, player.pos.y, player.size.x, player.size.y);
+  }
+
+  for (let i = 0; i < gameState.powerups.length; i++) {
+    const powerup = gameState.powerups[i];
+
+    ctx.beginPath();
+    ctx.rect(powerup.pos.x - powerup.radius, powerup.pos.y - powerup.radius, powerup.radius * 2, powerup.radius * 2);
+    ctx.strokeStyle = "#000000";
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.font = "8px monospace";
+    ctx.fillStyle = "#000000";
+    ctx.fillText(powerup.type, powerup.pos.x, powerup.pos.y);
   }
 
   ctx.beginPath();

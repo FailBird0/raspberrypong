@@ -25,12 +25,16 @@ class Lobby {
     this.targetPlayerCount = 2;
     this.isResetting = false;
     this.hasStarted = false;
+    this.gameTick = null;
+    this.newPowerupInterval = null;
 
     /** @type {Player[]} */
     this.players = [];
 
     /** @type {Ball} */
     this.ball = new Ball();
+
+    this.powerups = [];
   }
 
   update() {
@@ -39,6 +43,13 @@ class Lobby {
     });
 
     this.ball.update();
+
+    this.powerups.forEach(powerup => {
+      powerup.update(this.gameTick);
+    });
+
+    // Remove dead powerups
+    this.powerups = this.powerups.filter(powerup => !powerup.isDead);
 
     if (this.ball.pos.x - this.ball.radius < 0) {
       // Hit left wall
@@ -71,8 +82,10 @@ class Lobby {
         let playerSpeed = player.vel.y;
 
         if (this.ball.vel.x > 0) {
+          this.ball.pos.x = player.pos.x + player.size.x + this.ball.radius;
           ballAngle -= (Math.PI / 2.5 * Math.tanh(-playerSpeed / 10)) / 3;
         } else {
+          this.ball.pos.x = player.pos.x - this.ball.radius;
           ballAngle += (Math.PI / 2.5 * Math.tanh(-playerSpeed / 10)) / 3;
         }
 
@@ -80,6 +93,34 @@ class Lobby {
         this.ball.vel.y = Math.sin(ballAngle) * this.ball.speed;
       }
     }
+
+    // powerup spawn
+    if (this.newPowerupInterval <= 0) {
+      const pos = {
+        x: Math.random() * 80 - 40 + gameWidth / 2,
+        y: Math.random() * (gameHeight - 20) + 10
+      };
+
+      const powerup = allPowerups[Math.floor(Math.random() * allPowerups.length)]
+
+      this.powerups.push(new powerup(pos));
+
+      this.newPowerupInterval = Math.random() * 360 + 60;
+    }
+
+    this.newPowerupInterval--;
+
+    // powerup collision
+    for (const powerup of this.powerups) {
+      const dist = Math.hypot(powerup.pos.x - this.ball.pos.x, powerup.pos.y - this.ball.pos.y);
+      if (dist < this.ball.radius + powerup.radius) {
+        powerup.pickUp();
+
+        this.ball.effect = powerup.effect;
+      }
+    }
+
+    this.gameTick++;
   }
 
   playerJoin(playerInfo) {
@@ -127,6 +168,10 @@ class Lobby {
 
       this.ball.reset(gameCenter);
 
+      this.gameTick = 0;
+
+      this.newPowerupInterval = Math.floor(Math.random() * 360 + 60);
+
       this.hasStarted = true;
     }
   }
@@ -134,6 +179,7 @@ class Lobby {
     this.isResetting = true; // handled in index.js:gameLoops()
     this.hasStarted = false;
     this.ball.reset(gameCenter);
+    this.powerups = [];
   }
 }
 
@@ -170,9 +216,9 @@ class Player {
 
   update() {
     if (this.input.up) {
-      this.vel.y = -10;
+      this.vel.y = -12;
     } else if (this.input.down) {
-      this.vel.y = 10;
+      this.vel.y = 12;
     } else {
       this.vel.y = 0;
     }
@@ -203,9 +249,38 @@ class Ball {
       x: null,
       y: null
     };
+
+    this.effect = null;
   }
 
   update() {
+    if (this.effect) {
+      const ballAngle = Math.atan2(this.vel.y, this.vel.x);
+
+      switch (this.effect.type) {
+        case "FastBall":
+          this.speed = 32;
+          this.effect.duration--;
+
+          if (this.effect.duration <= 0) {
+            this.effect = null;
+            this.speed = 16;
+          }
+          
+          this.vel.x = Math.cos(ballAngle) * this.speed;
+          this.vel.y = Math.sin(ballAngle) * this.speed;
+
+          break;
+        case "ReverseBall":
+          this.vel.x = -this.vel.x;
+          this.vel.y = -this.vel.y;
+
+          this.effect = null;
+
+          break;
+      }
+    }
+
     this.pos.x += this.vel.x;
     this.pos.y += this.vel.y;
   }
@@ -223,5 +298,61 @@ class Ball {
       x: Math.cos(angle) * this.speed,
       y: Math.sin(angle) * this.speed
     };
+
+    if (this.effect && this.effect.duration) {
+      this.effect.duration = 0;
+    }
   }
 }
+
+class Powerup {
+  constructor(pos) {
+    this.originPos = {
+      x: pos.x,
+      y: pos.y
+    };
+
+    this.pos = {
+      x: pos.x,
+      y: pos.y
+    };
+
+    this.radius = 20;
+
+    this.isDead = false;
+  }
+
+  update(tick) {
+    this.pos.y = Math.sin(tick / 1000) + this.originPos.y;
+  }
+
+  pickUp() {
+    this.isDead = true;
+  }
+}
+
+class FastBallPowerup extends Powerup {
+  constructor(pos) {
+    super(pos);
+
+    this.effect = {
+      type: "FastBall",
+      duration: 90 // 90 ticks (30/sec * 3 sec)
+    };
+  }
+}
+
+class ReverseBallPowerup extends Powerup {
+  constructor(pos) {
+    super(pos);
+
+    this.effect = {
+      type: "ReverseBall"
+    };
+  }
+}
+
+const allPowerups = [
+  FastBallPowerup,
+  ReverseBallPowerup
+];
