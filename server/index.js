@@ -44,7 +44,9 @@ try {
   oledDisplay.turnOnDisplay();
   oledDisplay.clearDisplay();
   oledDisplay.dimDisplay(false);
-  oledDisplay.writeString(oledFont, 1, `  Pong Server Online\n       Port: ${port}\n\n`, 1, false);
+  oledDisplay.writeString(oledFont, 1, `  Pong Server Online  \n\n`, 1, false);
+  oledDisplay.writeString(oledFont, 1, `raspberrypi.local\n`, 1, false);
+  oledDisplay.writeString(oledFont, 1, `Port: ${port}\n\n`, 1, false);
 
   let ipsString = "";
 
@@ -90,19 +92,15 @@ wsServer.on("connection", (ws) => {
 
     switch (message.type) {
       case "User:saveName":
-        console.log(`${ws.name} (${ws.uuid}) Saving new name "${message.payload.name}"`);
-        saveUserName(ws, message.payload.name);
+        saveUsername(ws, message.payload.name);
         break;
       case "Lobby:join":
-        console.log(`${ws.name} (${ws.uuid}) Joining lobby "${message.data.lobbyID}"`);
         joinLobby(ws, message.data.lobbyID);
         break;
       case "Lobby:quit":
-        console.log(`${ws.name} (${ws.uuid}) Quitting lobby "${message.data.lobbyID}"`);
         quitLobby(ws, message.data.lobbyID);
         break;
       case "Lobby:readyState":
-        console.log(`${ws.name} (${ws.uuid}) ReadyState change lobby "${message.data.lobbyID}"`);
         readyLobby(ws, message.data.lobbyID, message.data.isReady);
         break;
       case "Lobby:getList":
@@ -119,7 +117,7 @@ wsServer.on("connection", (ws) => {
         player.input.down = inputs.down;
         break;
       default:
-        console.log(`Unknown message: ${message}`);
+        console.log(`Unknown message from WebSocket connection ${ws.uuid}: "${message}"`);
         break;
     }
   });
@@ -132,7 +130,7 @@ myServer.on("upgrade", async function upgrade(request, socket, head) {
 });
 
 
-const saveUserName = (ws, newName) => {
+const saveUsername = (ws, newName) => {
   ws.name = newName;
 }
 
@@ -347,6 +345,7 @@ function gameLoops() {
       lobby.update();
 
       // compressing json / omitting unnecessary data
+      // spaghet
       const json = JSON.stringify(
         {
           type: "Game:update",
