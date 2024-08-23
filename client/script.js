@@ -1,5 +1,5 @@
 const url = `ws://${window.location.host}/myWebsocket`;
-const mywsServer = new WebSocket(url);
+const socket = new WebSocket(url);
 
 const $home = document.getElementById("home");
 const $lobby = document.getElementById("lobby");
@@ -34,11 +34,11 @@ let gameState;
 let modGameState;
 
 // if client's connection is up
-mywsServer.onopen = () => {
-  mywsServer.send(JSON.stringify({ type: "Lobby:getList" }));
+socket.onopen = () => {
+  socket.send(JSON.stringify({ type: "Lobby:getList" }));
 }
 
-mywsServer.onmessage = (event) => {
+socket.onmessage = (event) => {
   const data = JSON.parse(event.data);
 
   switch (data.type) {
@@ -70,7 +70,7 @@ mywsServer.onmessage = (event) => {
 }
 
 const joinLobby = (lobbyID) => {
-  mywsServer.send(JSON.stringify(
+  socket.send(JSON.stringify(
     {
       type: "Lobby:join",
       data: {
@@ -81,7 +81,7 @@ const joinLobby = (lobbyID) => {
 };
 
 const quitLobby = (lobbyID) => {
-  mywsServer.send(JSON.stringify(
+  socket.send(JSON.stringify(
     {
       type: "Lobby:quit",
       data: {
@@ -92,7 +92,7 @@ const quitLobby = (lobbyID) => {
 };
 
 const readyLobby = (lobbyID, isReady) => {
-  mywsServer.send(JSON.stringify(
+  socket.send(JSON.stringify(
     {
       type: "Lobby:readyState",
       data: {
@@ -287,12 +287,12 @@ const renderGame = () => {
     ctx.fillText(powerup.type, powerup.pos.x, powerup.pos.y);
   }
 
-  ctx.beginPath();
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "32px monospace";
-  ctx.fillStyle = "#c0c0c0";
-  ctx.fillText(`${players[0].score}:${players[1].score}`, $canvas.width / 2, $canvas.height / 2);
+  // ctx.beginPath();
+  // ctx.textAlign = "center";
+  // ctx.textBaseline = "middle";
+  // ctx.font = "32px monospace";
+  // ctx.fillStyle = "#c0c0c0";
+  // ctx.fillText(`${players[0].score}:${players[1].score}`, $canvas.width / 2, $canvas.height / 2);
 
   ctx.beginPath();
   ctx.arc(ball.pos.x, ball.pos.y, ball.radius, 0, 2 * Math.PI);
@@ -320,7 +320,7 @@ $home.querySelector(".home-name-save").onclick = () => {
     }
   });
 
-  mywsServer.send(json);
+  socket.send(json);
 };
 
 window.addEventListener("beforeunload", () => {
@@ -382,7 +382,7 @@ function gameUpdate() {
 
   prevInputs = JSON.stringify(inputs);
 
-  mywsServer.send(json);
+  socket.send(json);
 }
 
 setInterval(gameUpdate, 1000 / 15);

@@ -1,8 +1,8 @@
 /**
  * @param {string} id
  */
-const createNewLobby = (id) => {
-  const lobby = new Lobby(id);
+const createNewLobby = (id, lobbySize) => {
+  const lobby = new Lobby(id, lobbySize);
 
   return lobby;
 }
@@ -19,10 +19,11 @@ const gameCenter = {
 class Lobby {
   /**
    * @param {string} id
+   * @param {number} lobbySize
    */
-  constructor(id) {
+  constructor(id, lobbySize) {
     this.lobbyID = id;
-    this.targetPlayerCount = 2;
+    this.targetPlayerCount = lobbySize;
     this.isResetting = false;
     this.hasStarted = false;
     this.gameTick = null;
@@ -38,19 +39,14 @@ class Lobby {
   }
 
   update() {
+    // update players
     this.players.forEach(player => {
       player.update();
     });
 
+    // update ball
     this.ball.update();
-
-    this.powerups.forEach(powerup => {
-      powerup.update(this.gameTick);
-    });
-
-    // Remove dead powerups
-    this.powerups = this.powerups.filter(powerup => !powerup.isDead);
-
+    
     if (this.ball.pos.x - this.ball.radius < 0) {
       // Hit left wall
       this.ball.reset(gameCenter);
@@ -94,6 +90,15 @@ class Lobby {
       }
     }
 
+    // update powerups
+    this.powerups.forEach(powerup => {
+      powerup.update(this.gameTick);
+    });
+
+    // Remove dead powerups
+    this.powerups = this.powerups.filter(powerup => !powerup.isDead);
+
+
     // powerup spawn
     if (this.newPowerupInterval <= 0) {
       const pos = {
@@ -113,6 +118,7 @@ class Lobby {
     // powerup collision
     for (const powerup of this.powerups) {
       const dist = Math.hypot(powerup.pos.x - this.ball.pos.x, powerup.pos.y - this.ball.pos.y);
+      
       if (dist < this.ball.radius + powerup.radius) {
         powerup.pickUp();
 
@@ -155,25 +161,38 @@ class Lobby {
     return true;
   }
   initGame() {
-    if (this.targetPlayerCount === 2) {
-      this.players[0].size.x = 16;
-      this.players[0].size.y = 175;
-      this.players[1].size.x = 16;
-      this.players[1].size.y = 175;
+    // this.players[0].size.x = 16;
+    // this.players[0].size.y = 175;
+    // this.players[1].size.x = 16;
+    // this.players[1].size.y = 175;
 
-      this.players[0].pos.x = this.players[0].size.x;
-      this.players[0].pos.y = gameHeight / 2 - this.players[0].size.y;
-      this.players[1].pos.x = gameWidth - this.players[1].size.x * 2;
-      this.players[1].pos.y = gameHeight / 2 - this.players[1].size.y;
+    // this.players[0].pos.x = this.players[0].size.x;
+    // this.players[0].pos.y = gameHeight / 2 - this.players[0].size.y;
+    // this.players[1].pos.x = gameWidth - this.players[1].size.x * 2;
+    // this.players[1].pos.y = gameHeight / 2 - this.players[1].size.y;
 
-      this.ball.reset(gameCenter);
+    // if (this.lobbySize === 4) {
+    //   this.players[2].size.x = 175;
+    //   this.players[2].size.y = 16;
+    //   this.players[3].size.x = 175;
+    //   this.players[3].size.y = 16;
 
-      this.gameTick = 0;
+    //   this.players[2].pos.x = gameWidth / 2 - this.players[2].size.x;
+    //   this.players[2].pos.y = this.players[2].size.y;
+    //   this.players[3].pos.x = gameWidth / 2 - this.players[3].size.x;
+    //   this.players[3].pos.y = gameHeight - this.players[3].size.y;
+    // }
 
-      this.newPowerupInterval = Math.floor(Math.random() * 360 + 60);
+    for (let i = 0; i < this.players.length; i++) {
+      const player = this.players[i];
+      
 
-      this.hasStarted = true;
     }
+
+    this.ball.reset(gameCenter);
+    this.gameTick = 0;
+    this.newPowerupInterval = Math.floor(Math.random() * 360 + 60);
+    this.hasStarted = true;
   }
   resetLobby() {
     this.isResetting = true; // handled in index.js:gameLoops()

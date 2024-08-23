@@ -260,9 +260,9 @@ const readyLobby = (ws, lobbyID, isReady) => {
 
 const lobbies = new Map();
 
-const createLobby = () => {
+const createLobby = (lobbySize) => {
   const lobbyID = crypto.randomUUID();
-  const lobby = createNewLobby(lobbyID, 2);
+  const lobby = createNewLobby(lobbyID, lobbySize);
 
   lobbies.set(
     lobbyID,
@@ -288,12 +288,14 @@ const sendLobbyInfos = (ws) => {
     });
   });
 
-  const json = JSON.stringify({
-    type: "Lobby:list",
-    payload: {
-      lobbies: lobbyInfos
+  const json = JSON.stringify(
+    {
+      type: "Lobby:list",
+      payload: {
+        lobbies: lobbyInfos
+      }
     }
-  });
+  );
 
   ws.send(json);
 };
@@ -336,7 +338,8 @@ const sendLobbyInfo = (ws, lobbyID) => {
   }
 }
 
-createLobby();
+createLobby(2);
+createLobby(4);
 
 function gameLoops() {
   lobbies.forEach(lobby => {
